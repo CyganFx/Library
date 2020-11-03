@@ -2,7 +2,7 @@ package Model;
 
 import java.util.Objects;
 
-public class Reader implements User {
+public class Reader {
     private int readerId;
     private String username;
     private String address;

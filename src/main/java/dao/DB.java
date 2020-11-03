@@ -9,7 +9,6 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
 
 public class DB {
@@ -65,17 +64,6 @@ public class DB {
             e.printStackTrace();
         }
         return st;
-    }
-
-    public List<Book> listAll() {
-        List<Book> books = new ArrayList<>();
-        try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * From book");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return books;
     }
 
     public int addBook(int id, String name, String author, int countOfCopies, String imageUrl, String isbn) {
