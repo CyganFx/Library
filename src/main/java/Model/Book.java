@@ -12,26 +12,29 @@ public class Book implements Serializable, Comparator<Book>, Comparable<Book> {
     private String author;
     private int countOfCopies;
     private String imageURL;
+    private String isbn;
 
     public Book() {
 
     }
 
-    public Book(int id, String name, String author, int countOfCopies, String imageURL) {
+    public Book(int id, String name, String author, int countOfCopies, String imageURL, String isbn) {
         this.id = id;
         this.name = name;
         this.author = author;
         this.countOfCopies = countOfCopies;
         this.imageURL = imageURL;
+        this.isbn = isbn;
     }
 
     public Book(String[] bookFields) {
-        if (bookFields.length == 5) {
+        if (bookFields.length == 6) {
             this.id = Integer.parseInt(bookFields[0]);
             this.name = bookFields[1];
             this.author = bookFields[2];
             this.countOfCopies = Integer.parseInt(bookFields[3]);
             this.imageURL = bookFields[4];
+            this.isbn = bookFields[5];
         }
     }
 
@@ -78,6 +81,14 @@ public class Book implements Serializable, Comparator<Book>, Comparable<Book> {
         this.imageURL = imageURL;
     }
 
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
     public ArrayList<Book> lowToHigh(ArrayList<Book> list) {
         Collections.sort(list);
         return list;
@@ -106,7 +117,7 @@ public class Book implements Serializable, Comparator<Book>, Comparable<Book> {
                 ", author='" + author + '\'' +
                 ", countOfCopies=" + countOfCopies +
                 ", imageURL='" + imageURL + '\'' +
+                ", isbn='" + isbn + '\'' +
                 '}';
     }
-
 }

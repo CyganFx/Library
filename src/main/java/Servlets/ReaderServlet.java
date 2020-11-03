@@ -23,13 +23,14 @@ public class ReaderServlet extends HttpServlet {
         String username = (String) session.getAttribute("username");
         int bookId = Integer.parseInt(request.getParameter("bookId"));
         int countOfCopies = Integer.parseInt(request.getParameter("countOfCopies"));
-        int added = 0;
+        String errorMessage = null;
         try {
-            added = db.addBookToReader(username, bookId, countOfCopies);
+            errorMessage = db.addBookToReader(username, bookId, countOfCopies);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        request.setAttribute("crud", "c" + added);
+        request.setAttribute("crud", "c");
+        request.setAttribute("errorMessage", errorMessage);
 
         try {
             Connection connection = DB.getConnection();

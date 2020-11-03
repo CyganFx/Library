@@ -56,9 +56,21 @@
     } else if (!session.getAttribute("username").equals("admin")) { //Librarian username
         response.sendRedirect("reader.jsp");
     }
+    Cookie[] cookies = request.getCookies();
+    int counter;
+    for (Cookie cookie : cookies) {
+        if (cookie.getName().equals("counter")) {
+            counter = Integer.parseInt(cookie.getValue());
+            counter++;
+            cookie.setValue(counter + "");
+            response.addCookie(cookie);
+        }
+    }
 %>
+
 <div style="margin: auto; width: 40%; border: 5px solid green; padding: 10px; background-color: aquamarine">
-    <a href="${pageContext.request.contextPath}/RegisterReader"><h1>Readers info</h1></a>
+    <a href="${pageContext.request.contextPath}/RegisterReader"><h1>Register Reader</h1></a>
+    <a href="${pageContext.request.contextPath}/ReadersInfo"><h1>Readers Info</h1></a>
     <input type="text" id="searchId" style="width: 80%;" placeholder="book or author name" name="search">
     <input type="button" style="width: 15%;" name="search" value="search" onclick="searchBook()">
     <h2>
@@ -73,7 +85,7 @@
                     <h3 style="color: #4CAF50"><c:out value="The Book Was Successfully Deleted" /></h3>
                 </c:when>
                 <c:when test="${crud.charAt(1) == '1'.charAt(0) && crud.charAt(0) == 'u'.charAt(0)}">
-                    <c:out value="The Book Was Successfully Updated" />
+                    <h3 style="color: #4CAF50"><c:out value="The Book Was Successfully Updated" /></h3>
                 </c:when>
                 <c:otherwise>
                     <h3 style="color: #EF3B3A"><c:out value="Something is wrong" /></h3>
@@ -116,13 +128,14 @@
                         <input type="submit" name="submit" value="update">&nbsp;&nbsp;
                         <input type="submit" name="submit" value="delete">
                     </td>
-                    <td style="width:30%" rowspan="6"><img src="<c:out value="${book.imageURL}"/>" width="128px" height="192px" /></td>
+                    <td style="width:30%" rowspan="7"><img src="<c:out value="${book.imageURL}"/>" width="128px" height="215px" /></td>
                 </tr>
                 <tr><td><input style="width: 100%" type="number" name="bookId" placeholder="book ID" value="<c:out value="${book.id}"/>"></td></tr>
                 <tr><td><input style="width: 100%" type="text" name="bookName" placeholder="book name" value="<c:out value="${book.name}"/>"></td></tr>
                 <tr><td><input style="width: 100%" type="text" name="bookAuthor" placeholder="book author" value="<c:out value="${book.author}"/>"></td></tr>
                 <tr><td><input style="width: 100%" type="number" name="countOfCopies" placeholder="amount" value="<c:out value="${book.countOfCopies}"/>"/></td></tr>
                 <tr><td><input style="width: 100%" type="url" name="imageURL" placeholder="image URL" value="<c:out value="${book.imageURL}"/>"></td></tr>
+                <tr><td><input style="width: 100%" type="text" name="isbn" placeholder="book ISBN" value="<c:out value="${book.isbn}"/>"></td></tr>
             </table>
         </form>
         <br>
@@ -135,6 +148,7 @@
             <tr><td><input style="width: 100%" type="text" name="bookAuthor" placeholder="author"></td></tr>
             <tr><td><input style="width: 100%" type="number" name="countOfCopies" placeholder="amount"/></td></tr>
             <tr><td><input style="width: 100%" type="url" name="imageURL" placeholder="image URL"></td></tr>
+            <tr><td><input style="width: 100%" type="text" name="isbn" placeholder="book ISBN"></td></tr>
             <tr><td><input type="submit" name="submit" value="add"></td></tr>
         </table>
     </form>

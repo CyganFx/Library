@@ -64,19 +64,38 @@
         response.sendRedirect("index.jsp");
     }
 %>
-<center><h1>Welcome Reader! Choose your book</h1></center>
+<center><h1 style="color:greenyellow;">Welcome Reader! Choose your book</h1></center>
 <div style="margin: auto; width: 40%; border: 5px solid green; padding: 10px; background-color: aquamarine">
     <input type="text" id="searchId" style="width: 80%;" placeholder="book or author name" name="search">
     <input type="button" style="width: 15%;" name="search" value="search" onclick="searchBook()">
     <center><input type="button" id="recommendationButton" style="width: 30%;" name="recommendationButton"
                    value="Recommendation"></center>
     <p type="text" id="recommendation" name="recommendation"></p>
+
+    <c:set var="errorMessage" value='${errorMessage}'/>
+    <c:choose>
+        <c:when test="${!errorMessage.equals('ok')}">
+            <center><h3 style="color: red"><c:out value="${errorMessage}"/></h3></center>
+        </c:when>
+        <c:when test="${errorMessage.equals('ok')}">
+            <c:set var="crud" value='${crud}'/>
+            <c:if test="${crud != null}">
+                <c:choose>
+                    <c:when test="${crud.charAt(0) == 'c'.charAt(0) }">
+                        <h3 style="color: #4CAF50"><c:out
+                                value="The New Book Was Successfully Added To Your Borrowed List"/></h3>
+                    </c:when>
+                </c:choose>
+            </c:if>
+        </c:when>
+    </c:choose>
+
     <form action="${pageContext.request.contextPath}/Reader" method="post">
         <table style="border-collapse: collapse; border: 3px solid black; width: 100%" id="book-">
             <tr>
                 <td>
                     <input style="width: 100%" type="hidden" id="id" name="bookId" value=""/>&nbsp;&nbsp;
-                    <input type="submit" name="submit" value="add">&nbsp;&nbsp;
+                    <input type="submit" name="submit" value="borrow">&nbsp;&nbsp;
                 </td>
                 <td style="width:30%" rowspan="6"><img id="bookImage" src="" alt="book poster" width="128px"
                                                        height="192px"/></td>
@@ -113,11 +132,13 @@
                    id="book-<c:out value="${book.id}"/>">
                 <tr>
                     <td>
-                        <input style="width: 100%" type="hidden" name="bookId" value="<c:out value="${book.id}"/>">
-                        <input type="submit" name="submit" value="add">&nbsp;&nbsp;
+                        <input style="width: 100%" type="hidden" name="bookId"
+                               value="<c:out value="${book.id}"/>">
+                        <input type="submit" name="submit" value="borrow">&nbsp;&nbsp;
                     </td>
-                    <td style="width:30%" rowspan="6"><img src="<c:out value="${book.imageURL}"/>" width="128px"
-                                                           height="192px"/></td>
+                    <td style="width:30%" rowspan="7"><img src="<c:out value="${book.imageURL}"/>"
+                                                           width="128px"
+                                                           height="215px"/></td>
                 </tr>
                 <tr>
                     <td><input style="width: 100%" type="number" name="bookId" placeholder="book ID"
@@ -132,11 +153,16 @@
                                value="<c:out value="${book.author}"/>"></td>
                 </tr>
                 <tr>
-                    <td><label>Books left: <c:out value="${book.countOfCopies}" /></label><input style="width: 100%" type="number" name="countOfCopies" placeholder="amount"/></td>
+                    <td><label>Books left: <c:out value="${book.countOfCopies}"/></label><input
+                            style="width: 100%" type="number" name="countOfCopies" placeholder="amount"/>
+                    </td>
                 </tr>
                 <tr>
                     <td><input style="width: 100%" type="url" name="imageURL" placeholder="image URL"
                                value="<c:out value="${book.imageURL}"/>"></td>
+                </tr>
+                <tr>
+                    <td><input style="width: 100%" type="text" name="isbn" placeholder="book ISBN" value="<c:out value="${book.isbn}"/>"></td>
                 </tr>
             </table>
         </form>

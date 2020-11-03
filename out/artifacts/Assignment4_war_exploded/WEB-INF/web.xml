@@ -51,5 +51,13 @@
         <servlet-name>ReaderServlet</servlet-name>
         <url-pattern>/Reader</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>ReadersInfoServlet</servlet-name>
+        <servlet-class>Servlets.ReadersInfoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ReadersInfoServlet</servlet-name>
+        <url-pattern>/ReadersInfo</url-pattern>
+    </servlet-mapping>
 
 </web-app>

@@ -19,6 +19,21 @@
 </head>
 <body>
 
+<%
+    Cookie[] cookies = request.getCookies();
+    int counter;
+    for (Cookie cookie : cookies) {
+        if (cookie.getName().equals("counter")) {
+            counter = Integer.parseInt(cookie.getValue());
+            counter++;
+            cookie.setValue(counter + "");
+            response.addCookie(cookie);
+        }
+    }
+%>
+
+<a href="${pageContext.request.contextPath}/MainServlet"><h3 style="color: dodgerblue">Go Back</h3></a>
+
 <div class="form">
     <center><h2>Register User</h2></center>
     <c:set var="errorMessage" value='${errorMessage}'/>
@@ -34,12 +49,6 @@
                         <h3 style="color: #4CAF50"><c:out value="The New Reader Was Successfully Added"/></h3>
                         <c:out value="You can find it in the list"/>
                     </c:when>
-                    <%--                    <c:when test="${crud.charAt(0) == 'd'.charAt(0)}">--%>
-                    <%--                        <h3 style="color: #4CAF50"><c:out value="The Reader Was Successfully Deleted"/></h3>--%>
-                    <%--                    </c:when>--%>
-                    <%--                    <c:when test="${crud.charAt(0) == 'u'.charAt(0)}">--%>
-                    <%--                        <c:out value="The Reader Was Successfully Updated"/>--%>
-                    <%--                    </c:when>--%>
                     <c:otherwise>
                         <center><h3 style="color: #EF3B3A"><c:out value="Something is wrong"/></h3></center>
                     </c:otherwise>
@@ -55,9 +64,7 @@
         <input type="phone" name="phone" placeholder="phone number"/>
         <input type="submit" name="submit" value="Register">
     </form>
-
 </div>
-
 
 </body>
 </html>

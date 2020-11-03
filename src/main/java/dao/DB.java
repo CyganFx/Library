@@ -1,6 +1,7 @@
 package dao;
 
 import Model.Book;
+import Model.Reader;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -9,9 +10,9 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class DB {
-    private static List<Book> list = new ArrayList<>();
 
     public static Connection getConnection() {
         Connection connection = null;
@@ -77,33 +78,34 @@ public class DB {
         return books;
     }
 
-    public int addBook(int id, String name, String author, int countOfCopies, String imageUrl) {
-        int added = 0;
+    public int addBook(int id, String name, String author, int countOfCopies, String imageUrl, String isbn) {
+        int added;
         try {
             Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("Insert into book(book_id, book_name, author, countofcopies, book_url) VALUES (?,?,?,?,?)");
+            PreparedStatement preparedStatement = connection.prepareStatement("Insert into book(book_id, book_name, author, countofcopies, book_url, isbn) VALUES (?,?,?,?,?,?)");
             preparedStatement.setInt(1, id);
             preparedStatement.setString(2, name);
             preparedStatement.setString(3, author);
             preparedStatement.setInt(4, countOfCopies);
             preparedStatement.setString(5, imageUrl);
+            preparedStatement.setString(6, isbn);
             added = preparedStatement.executeUpdate();
             connection.close();
             preparedStatement.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            return 0;
         }
         return added;
     }
 
-    public int addBookToReader(String username, int bookId, int countOfCopies) throws SQLException {
-        int added = 0;
+    public String addBookToReader(String username, int bookId, int countOfCopies) throws SQLException {
+        String errorMessage = "ok";
         if (!checkBooksAmount(bookId, countOfCopies)) {
-            System.out.println("checkBooksAmount failed");
-            return 0;
+            errorMessage = "There is not enough books to borrow " + countOfCopies + " books with id: " + bookId;
+            return errorMessage;
         }
         try {
-            System.out.println("try block addbooktoreader");
             Connection connection = getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement("select * from reader where username = ? and borrowed_book_id = ?");
             preparedStatement.setString(1, username);
@@ -119,8 +121,9 @@ public class DB {
                 amountOfBooksInDB = resultSet2.getInt("countofcopies");
             }
 
-            PreparedStatement preparedStatement8 = connection.prepareStatement("select borrowed_amount from reader where username = ?");
+            PreparedStatement preparedStatement8 = connection.prepareStatement("select borrowed_amount from reader where username = ? and borrowed_book_id = ?");
             preparedStatement8.setString(1, username);
+            preparedStatement8.setInt(2, bookId);
             ResultSet resultSet3 = preparedStatement8.executeQuery();
             int amountOfBooksUserHas = 0;
             while (resultSet3.next()) {
@@ -129,24 +132,21 @@ public class DB {
             preparedStatement8.close();
 
             if (resultSet.next()) {
-                System.out.println("resultsetnext:");
                 PreparedStatement preparedStatement2 = connection.prepareStatement("update reader set borrowed_amount = ? where username = ? and borrowed_book_id = ?");
                 preparedStatement2.setInt(1, amountOfBooksUserHas + countOfCopies);
                 preparedStatement2.setString(2, username);
                 preparedStatement2.setInt(3, bookId);
-                added = preparedStatement2.executeUpdate();
+                preparedStatement2.executeUpdate();
                 preparedStatement2.close();
 
-                System.out.println("amount: " + amountOfBooksUserHas);
                 PreparedStatement preparedStatement5 = connection.prepareStatement("update book set countofcopies = ? where book_id = ?");
                 preparedStatement5.setInt(1, amountOfBooksInDB - countOfCopies);
                 preparedStatement5.setInt(2, bookId);
-                added = preparedStatement5.executeUpdate();
+                preparedStatement5.executeUpdate();
 
                 preparedStatement5.close();
                 connection.close();
             } else {
-                System.out.println("else clause");
                 PreparedStatement preparedStatement4 = connection.prepareStatement("select reader_id from reader where username = ?");
                 preparedStatement4.setString(1, username);
                 resultSet = preparedStatement4.executeQuery();
@@ -160,25 +160,25 @@ public class DB {
                 preparedStatement3.setInt(3, bookId);
                 preparedStatement3.setInt(4, countOfCopies);
 
-                added = preparedStatement3.executeUpdate();
+                preparedStatement3.executeUpdate();
                 preparedStatement3.close();
                 preparedStatement4.close();
 
                 PreparedStatement preparedStatement7 = connection.prepareStatement("update book set countofcopies = ? where book_id = ?");
                 preparedStatement7.setInt(1, amountOfBooksInDB - countOfCopies);
                 preparedStatement7.setInt(2, bookId);
-                added = preparedStatement7.executeUpdate();
+                preparedStatement7.executeUpdate();
 
                 preparedStatement7.close();
                 connection.close();
 
-                return added;
+                return errorMessage;
             }
             preparedStatement6.close();
         } catch (SQLException e) {
             System.out.println("catch clause:");
         }
-        return added;
+        return errorMessage;
     }
 
     public String addReader(int id, String username, String password, String address, String phone) {
@@ -230,7 +230,6 @@ public class DB {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 int amount = resultSet.getInt("countofcopies");
-                System.out.println("amount of books: " + amount);
                 if (amount - countOfCopies >= 0) {
                     return true;
                 }
@@ -303,4 +302,78 @@ public class DB {
         }
         return bookList;
     }
+
+    public Stack<Reader> getAllReaders() {
+        Stack<Reader> stack = new Stack<>();
+        try {
+            Connection connection = getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement("select * from reader order by reader_id");
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("reader_id");
+                String username = resultSet.getString("username");
+                String password = resultSet.getString("password");
+                String address = resultSet.getString("address");
+                String phone = resultSet.getString("phone");
+                int amount = resultSet.getInt("borrowed_amount");
+                int bookId = resultSet.getInt("borrowed_book_id");
+
+                Reader r = new Reader();
+                r.setReaderId(id);
+                r.setUsername(username);
+                r.setPassword(password);
+                r.setAddress(address);
+                r.setPhone(phone);
+                r.setBorrowedAmount(amount);
+                r.setBorrowedBookId(bookId);
+                stack.push(r);
+                r = null;
+            }
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return stack;
+    }
+
+    public int updateReader(int readerId, String username, String address, String phone, int bookAmount, int bookId) {
+        int updated = 0;
+        try {
+            Connection connection = getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                    "update reader set username=?, address=?, phone=?, borrowed_amount=? where reader_id = ? and borrowed_book_id = ?");
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, address);
+            preparedStatement.setString(3, phone);
+            preparedStatement.setInt(4, bookAmount);
+            preparedStatement.setInt(5, readerId);
+            preparedStatement.setInt(6, bookId);
+            updated = preparedStatement.executeUpdate();
+            connection.close();
+            preparedStatement.close();
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+        return updated;
+    }
+
+    public int deleteReader(int readerId) {
+        int deleted = 0;
+        if (readerId == 1) {
+            return -1;
+        }
+        try {
+            Connection connection = getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement("Delete from reader WHERE reader_id = ? and (borrowed_amount = 0 or borrowed_amount is null)");
+            preparedStatement.setInt(1, readerId);
+            deleted = preparedStatement.executeUpdate();
+            connection.close();
+            preparedStatement.close();
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+        return deleted;
+    }
+
 }

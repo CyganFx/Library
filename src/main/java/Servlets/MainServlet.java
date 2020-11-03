@@ -28,7 +28,8 @@ public class MainServlet extends HttpServlet {
                 String bookAuthor = request.getParameter("bookAuthor");
                 int countOfCopies = Integer.parseInt(request.getParameter("countOfCopies"));
                 String coverURL = request.getParameter("imageURL");
-                int added = db.addBook(bookId, bookName, bookAuthor, countOfCopies, coverURL);
+                String isbn = request.getParameter("isbn");
+                int added = db.addBook(bookId, bookName, bookAuthor, countOfCopies, coverURL, isbn);
                 request.setAttribute("crud", "c" + added);
                 break;
             }
@@ -42,7 +43,7 @@ public class MainServlet extends HttpServlet {
                 int bookId = Integer.parseInt(request.getParameter("bookId"));
                 String bookName = request.getParameter("bookName");
                 String bookAuthor = request.getParameter("bookAuthor");
-                int countOfCopies = Integer.parseInt(request.getParameter("countOfCopies")); //TODO
+                int countOfCopies = Integer.parseInt(request.getParameter("countOfCopies"));
                 String coverURL = request.getParameter("imageURL");
 
                 int updated = db.updateBook(bookId, bookName, bookAuthor, countOfCopies, coverURL);
