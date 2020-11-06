@@ -12,9 +12,12 @@ import java.util.ArrayList;
 import java.util.Stack;
 
 public class DB {
+    protected static Connection connection;
+    protected static ResultSet resultSet;
+    ResultSetMetaData metaData;
+    protected static PreparedStatement statement;
 
-    public static Connection getConnection() {
-        Connection connection = null;
+    public static void getConnection() {
         try {
             Context initialContext = new InitialContext();
             Context envCtx = (Context) initialContext.lookup("java:comp/env");
@@ -23,15 +26,15 @@ public class DB {
         } catch (NamingException | SQLException e) {
             e.printStackTrace();
         }
-        return connection;
     }
 
-    public ArrayList<Book> read(Connection connection) {
+    public ArrayList<Book> read() {
         ArrayList<Book> bookList = new ArrayList<>();
         try {
+            getConnection();
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("Select*from book");
-            ResultSetMetaData metaData = resultSet.getMetaData();
+            resultSet = statement.executeQuery("Select*from book");
+            metaData = resultSet.getMetaData();
             int numOfColumns = metaData.getColumnCount();
             Book book;
             while (resultSet.next()) {
@@ -54,11 +57,11 @@ public class DB {
     public static boolean checkReader(String username, String password) {
         boolean st = false;
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM reader WHERE username=? and password=?");
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, password);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            getConnection();
+            statement = connection.prepareStatement("SELECT * FROM reader WHERE username=? and password=?");
+            statement.setString(1, username);
+            statement.setString(2, password);
+            resultSet = statement.executeQuery();
             st = resultSet.next();
         } catch (Exception e) {
             e.printStackTrace();
@@ -69,17 +72,17 @@ public class DB {
     public int addBook(int id, String name, String author, int countOfCopies, String imageUrl, String isbn) {
         int added;
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("Insert into book(book_id, book_name, author, countofcopies, book_url, isbn) VALUES (?,?,?,?,?,?)");
-            preparedStatement.setInt(1, id);
-            preparedStatement.setString(2, name);
-            preparedStatement.setString(3, author);
-            preparedStatement.setInt(4, countOfCopies);
-            preparedStatement.setString(5, imageUrl);
-            preparedStatement.setString(6, isbn);
-            added = preparedStatement.executeUpdate();
+            getConnection();
+            statement = connection.prepareStatement("Insert into book(book_id, book_name, author, countofcopies, book_url, isbn) VALUES (?,?,?,?,?,?)");
+            statement.setInt(1, id);
+            statement.setString(2, name);
+            statement.setString(3, author);
+            statement.setInt(4, countOfCopies);
+            statement.setString(5, imageUrl);
+            statement.setString(6, isbn);
+            added = statement.executeUpdate();
             connection.close();
-            preparedStatement.close();
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
             return 0;
@@ -94,12 +97,12 @@ public class DB {
             return errorMessage;
         }
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("select * from reader where username = ? and borrowed_book_id = ?");
-            preparedStatement.setString(1, username);
-            preparedStatement.setInt(2, bookId);
-            preparedStatement.executeQuery();
-            ResultSet resultSet = preparedStatement.executeQuery();
+            getConnection();
+            statement = connection.prepareStatement("select * from reader where username = ? and borrowed_book_id = ?");
+            statement.setString(1, username);
+            statement.setInt(2, bookId);
+            statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
 
             PreparedStatement preparedStatement6 = connection.prepareStatement("select countofcopies from book where book_id = ?");
             preparedStatement6.setInt(1, bookId);
@@ -175,19 +178,19 @@ public class DB {
             errorMessage = "reader_id " + id + " already exist!";
         } else {
             try {
-                Connection connection = getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement("Insert into reader(reader_id, username, password, address, phone) VALUES (?,?,?,?,?)");
-                preparedStatement.setInt(1, id);
-                preparedStatement.setString(2, username);
-                preparedStatement.setString(3, password);
-                preparedStatement.setString(4, address);
-                preparedStatement.setString(5, phone);
-                int result = preparedStatement.executeUpdate();
+                getConnection();
+                statement = connection.prepareStatement("Insert into reader(reader_id, username, password, address, phone) VALUES (?,?,?,?,?)");
+                statement.setInt(1, id);
+                statement.setString(2, username);
+                statement.setString(3, password);
+                statement.setString(4, address);
+                statement.setString(5, phone);
+                int result = statement.executeUpdate();
                 if (result == 0) {
                     errorMessage = "Couldn't add reader for some reason";
                 }
                 connection.close();
-                preparedStatement.close();
+                statement.close();
             } catch (SQLException e) {
                 return errorMessage;
             }
@@ -197,10 +200,10 @@ public class DB {
 
     private boolean checkReaderId(int id) {
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("select reader_id from reader where reader_id = ?");
-            preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            getConnection();
+            statement = connection.prepareStatement("select reader_id from reader where reader_id = ?");
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) {
                 return true;
             }
@@ -212,10 +215,10 @@ public class DB {
 
     private boolean checkBooksAmount(int bookId, int countOfCopies) {
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("select countofcopies from book where book_id = ?");
-            preparedStatement.setInt(1, bookId);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            getConnection();
+            statement = connection.prepareStatement("select countofcopies from book where book_id = ?");
+            statement.setInt(1, bookId);
+            ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 int amount = resultSet.getInt("countofcopies");
                 if (amount - countOfCopies >= 0) {
@@ -231,16 +234,16 @@ public class DB {
     public int updateBook(int id, String name, String author, int countOfCopies, String imageURL) {
         int updated = 0;
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("update book set book_name=?, author=?, countofcopies=?, book_url=? where book_id=?");
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, author);
-            preparedStatement.setInt(3, countOfCopies);
-            preparedStatement.setString(4, imageURL);
-            preparedStatement.setInt(5, id);
-            updated = preparedStatement.executeUpdate();
+            getConnection();
+            statement = connection.prepareStatement("update book set book_name=?, author=?, countofcopies=?, book_url=? where book_id=?");
+            statement.setString(1, name);
+            statement.setString(2, author);
+            statement.setInt(3, countOfCopies);
+            statement.setString(4, imageURL);
+            statement.setInt(5, id);
+            updated = statement.executeUpdate();
             connection.close();
-            preparedStatement.close();
+            statement.close();
         } catch (SQLException sqlException) {
             sqlException.printStackTrace();
         }
@@ -251,12 +254,12 @@ public class DB {
     public int deleteBook(String id) {
         int deleted = 0;
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("Delete from book WHERE book_id =?");
-            preparedStatement.setInt(1, Integer.parseInt(id));
-            deleted = preparedStatement.executeUpdate();
+            getConnection();
+            statement = connection.prepareStatement("Delete from book WHERE book_id =?");
+            statement.setInt(1, Integer.parseInt(id));
+            deleted = statement.executeUpdate();
             connection.close();
-            preparedStatement.close();
+            statement.close();
         } catch (SQLException sqlException) {
             sqlException.printStackTrace();
         }
@@ -266,11 +269,11 @@ public class DB {
     public ArrayList<Book> searchReader(String name) {
         ArrayList<Book> bookList = new ArrayList();
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("Select * from book where book_name=? or author=?");
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, name);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            getConnection();
+            statement = connection.prepareStatement("Select * from book where book_name=? or author=?");
+            statement.setString(1, name);
+            statement.setString(2, name);
+            ResultSet resultSet = statement.executeQuery();
             ResultSetMetaData metaData = resultSet.getMetaData();
             int numberOfColumns = metaData.getColumnCount();
             Book book;
@@ -284,7 +287,7 @@ public class DB {
             }
             resultSet.close();
             connection.close();
-            preparedStatement.close();
+            statement.close();
         } catch (SQLException sqlException) {
             sqlException.printStackTrace();
         }
@@ -294,9 +297,9 @@ public class DB {
     public Stack<Reader> getAllReaders() {
         Stack<Reader> stack = new Stack<>();
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("select * from reader order by reader_id");
-            ResultSet resultSet = preparedStatement.executeQuery();
+            getConnection();
+            statement = connection.prepareStatement("select * from reader order by reader_id");
+            ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 int id = resultSet.getInt("reader_id");
                 String username = resultSet.getString("username");
@@ -317,7 +320,7 @@ public class DB {
                 stack.push(r);
                 r = null;
             }
-            preparedStatement.close();
+            statement.close();
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -328,18 +331,18 @@ public class DB {
     public int updateReader(int readerId, String username, String address, String phone, int bookAmount, int bookId) {
         int updated = 0;
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
+            getConnection();
+            statement = connection.prepareStatement(
                     "update reader set username=?, address=?, phone=?, borrowed_amount=? where reader_id = ? and borrowed_book_id = ?");
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, address);
-            preparedStatement.setString(3, phone);
-            preparedStatement.setInt(4, bookAmount);
-            preparedStatement.setInt(5, readerId);
-            preparedStatement.setInt(6, bookId);
-            updated = preparedStatement.executeUpdate();
+            statement.setString(1, username);
+            statement.setString(2, address);
+            statement.setString(3, phone);
+            statement.setInt(4, bookAmount);
+            statement.setInt(5, readerId);
+            statement.setInt(6, bookId);
+            updated = statement.executeUpdate();
             connection.close();
-            preparedStatement.close();
+            statement.close();
         } catch (SQLException sqlException) {
             sqlException.printStackTrace();
         }
@@ -352,12 +355,12 @@ public class DB {
             return -1;
         }
         try {
-            Connection connection = getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("Delete from reader WHERE reader_id = ? and (borrowed_amount = 0 or borrowed_amount is null)");
-            preparedStatement.setInt(1, readerId);
-            deleted = preparedStatement.executeUpdate();
+            getConnection();
+            statement = connection.prepareStatement("Delete from reader WHERE reader_id = ? and (borrowed_amount = 0 or borrowed_amount is null)");
+            statement.setInt(1, readerId);
+            deleted = statement.executeUpdate();
             connection.close();
-            preparedStatement.close();
+            statement.close();
         } catch (SQLException sqlException) {
             sqlException.printStackTrace();
         }

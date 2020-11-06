@@ -133,7 +133,7 @@
                 <tr>
                     <td>
                         <input style="width: 100%" type="hidden" name="bookId"
-                               value="<c:out value="${book.id}"/>">
+                               value="<c:out value="${book.id}"/> }}">
                         <input type="submit" name="submit" value="borrow">&nbsp;&nbsp;
                     </td>
                     <td style="width:30%" rowspan="7"><img src="<c:out value="${book.imageURL}"/>"

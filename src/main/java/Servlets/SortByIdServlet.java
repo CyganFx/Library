@@ -20,27 +20,22 @@ public class SortByIdServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         DB db = new DB();
-        try {
-            Connection connection = DB.getConnection();
-            ArrayList<Book> bookList = db.read(connection);
-            Book book = new Book();
-            String price = request.getParameter("sort");
-            if (price.equals("low-to-high")) {
-                bookList = book.lowToHigh(bookList);
-            } else {
-                bookList = book.highToLow(bookList);
-            }
-            connection.close();
-            request.removeAttribute("bookList");
-            request.setAttribute("bookList", bookList);
-            HttpSession session = request.getSession(true);
-            if (session.getAttribute("username").equals("admin")) {
-                request.getRequestDispatcher("librarian.jsp").forward(request,response);
-            } else {
-                request.getRequestDispatcher("reader.jsp").forward(request, response);
-            }
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        DB.getConnection();
+        ArrayList<Book> bookList = db.read();
+        Book book = new Book();
+        String price = request.getParameter("sort");
+        if (price.equals("low-to-high")) {
+            bookList = book.lowToHigh(bookList);
+        } else {
+            bookList = book.highToLow(bookList);
+        }
+        request.removeAttribute("bookList");
+        request.setAttribute("bookList", bookList);
+        HttpSession session = request.getSession(true);
+        if (session.getAttribute("username").equals("admin")) {
+            request.getRequestDispatcher("librarian.jsp").forward(request,response);
+        } else {
+            request.getRequestDispatcher("reader.jsp").forward(request, response);
         }
     }
 }

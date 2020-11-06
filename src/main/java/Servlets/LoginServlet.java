@@ -34,13 +34,8 @@ public class LoginServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            Connection connection = DB.getConnection();
-            ArrayList<Book> bookList = db.read(connection);
-            connection.close();
-            request.setAttribute("bookList", bookList);
-        } catch (SQLException sqlException) {
-            sqlException.printStackTrace();
-        }
+        DB.getConnection();
+        ArrayList<Book> bookList = db.read();
+        request.setAttribute("bookList", bookList);
     }
 }

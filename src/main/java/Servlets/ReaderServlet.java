@@ -32,26 +32,16 @@ public class ReaderServlet extends HttpServlet {
         request.setAttribute("crud", "c");
         request.setAttribute("errorMessage", errorMessage);
 
-        try {
-            Connection connection = DB.getConnection();
-            ArrayList<Book> bookList = db.read(connection);
-            connection.close();
-            request.setAttribute("bookList", bookList);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
+        DB.getConnection();
+        ArrayList<Book> bookList = db.read();
+        request.setAttribute("bookList", bookList);
         request.getRequestDispatcher("reader.jsp").forward(request, response);
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            Connection connection = DB.getConnection();
-            ArrayList<Book> bookList = db.read(connection);
-            connection.close();
-            request.setAttribute("bookList", bookList);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
+        DB.getConnection();
+        ArrayList<Book> bookList = db.read();
+        request.setAttribute("bookList", bookList);
         String recommendation = "Check out Master and Margarita!";
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");

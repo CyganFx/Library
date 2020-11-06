@@ -50,16 +50,11 @@ public class ReadersInfoServlet extends HttpServlet {
 
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            Connection connection = DB.getConnection();
-            ArrayList<Book> bookList = db.read(connection);
-            Stack<Reader> readersStack = db.getAllReaders();
-            connection.close();
-            request.setAttribute("bookList", bookList);
-            request.setAttribute("readersStack", readersStack);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
+        DB.getConnection();
+        ArrayList<Book> bookList = db.read();
+        Stack<Reader> readersStack = db.getAllReaders();
+        request.setAttribute("bookList", bookList);
+        request.setAttribute("readersStack", readersStack);
         request.getRequestDispatcher("readersInfo.jsp").forward(request, response);
     }
 }

@@ -24,7 +24,7 @@ public class RegisterReaderServlet extends HttpServlet {
         request.setAttribute("errorMessage", errorMessage);
         request.setAttribute("crud", "c");
         request.setAttribute("registerReaderPage", "registerReaderPage");
-        request.getRequestDispatcher("registerReader.jsp").forward(request, response); //TODO change later
+        request.getRequestDispatcher("registerReader.jsp").forward(request, response);
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
